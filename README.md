@@ -26,7 +26,7 @@ The following table is a oversimplified summary of the coverage of this course :
 ### Contents
 
 * Speech Recognition *work in progress*
-    * [Overview]()
+    * [Overview](Lecture%201%20Notes/README.md)
 * Voice Conversion *work in progress*
 * Speech Seperation *work in progress*
 * Speech Synthesis *work in progress*
