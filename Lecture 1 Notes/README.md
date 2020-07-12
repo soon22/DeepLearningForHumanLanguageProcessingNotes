@@ -1,19 +1,19 @@
 ## Speech Recognition
 
-* [Overview](###Overview)
-    * [Output: Different Variations of Tokens](###Output:-Different-Variations-of-Tokens)
-        * [Phoneme](####-Phoneme-:)
-        * [Grapheme](####-Grapheme-:)
-        * [Word](###-Word-:)
-        * [Morpheme](###-Morpheme-:)
-        * [Byte](###-Bytes-:)
-        * [Percentage of usage of different type of tokens](###-Percentage-of-usage-of-different-type-of-tokens)
-    * [Input: Acoustic Feature](###-Input:-Acoustic-Feature)
-        * [How to obtain acoustic feature](####-How-to-obtain-acoustic-feature-:)
-        * [Percentage of usage of different type of acoustic feature](###-Percentage-of-usage-of-different-type-of-acoustic-feature)
-    * [Amount of Data](###-Amount-of-Data)
+* [Overview](#Overview)
+    * [Output: Different Variations of Tokens](#Output:-Different-Variations-of-Tokens)
+        * [Phoneme](#Phoneme-:)
+        * [Grapheme](#Grapheme-:)
+        * [Word](#Word-:)
+        * [Morpheme](#Morpheme-:)
+        * [Byte](#Bytes-:)
+        * [Percentage of usage of different type of tokens](#Percentage-of-usage-of-different-type-of-tokens)
+    * [Input: Acoustic Feature](#Input:-Acoustic-Feature)
+        * [How to obtain acoustic feature](#How-to-obtain-acoustic-feature-:)
+        * [Percentage of usage of different type of acoustic feature](#Percentage-of-usage-of-different-type-of-acoustic-feature)
+    * [Amount of Data](#Amount-of-Data)
 
-* [Speech Recognition Models](###-Speech-Recognition-Models)
+* [Speech Recognition Models](#Speech-Recognition-Models)
 
 
 ### Overview
