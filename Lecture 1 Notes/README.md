@@ -434,3 +434,157 @@ Why teacher forcing ?
 * LAS start decoding after listening to the whole input
 * User may expect on-line speech recognition
 * Which means decoding as user is speaking, instead of decoding after user finished speaking
+
+# Connectionist Temporal Classification
+
+* CTC was introduced by Alex Graves at ICML 2006
+* CTC can be used for on-line streaming speech recognition
+* Consists of a encoder
+* Encoder is some type of uni-directional RNN
+* If use bi-directional RNN, cannot perform on-line speech recognition
+
+<img src="images/i27.PNG" width="400"/> 
+
+* At each time step, there is a linear classifier
+* Hidden state output **h** is transformed and pass through a softmax layer
+* The output of classifier is the token distribution vector with size **V**
+* **V** is the vocabulary size
+* Each frame consists of only 10ms of acoustic feature
+* It is very short
+* Difficult to have 1-to-1 relationship between input sequence and output sequence, ignoring down sampling
+* May need use more than one frame to decode one token
+* Addition of null, ∅
+* ∅ means the model does not know what to output
+* It wants to listen more before decoding, therefore the decoded token will be ∅
+* The size of the distribution vector becomes **V + 1**
+* Since CTC uses ∅, it requires post-processing
+* Post-processing:
+    * Removing ∅
+    * Merge duplicate tokens
+* For example,
+    >∅ ∅ d d ∅ e ∅ e ∅ p →	deep
+* Output sequence may be shorter than input sequence
+* During training, how to prepare training data ?
+* For example, we have 4 frames <code>x1, x2, x3, x4</code> paired to the word *we*
+* How do we know which frame is responsible for which token ?
+    * We do not know !
+* Possible labelling or **alignment**
+    * w ∅ ∅ e
+    * w w e e
+    * ∅ w ∅ e
+* So how ?
+    * Enumerate all possible alignments and use them during training !
+
+## Does CTC works ?
+
+<img src="images/i28.PNG" width="500"/> 
+
+* The y-axis shows the assigned probability
+* The dotted line is for ∅
+* It kinda works !
+
+<img src="images/i29.PNG" width="600"/> 
+
+* The figure above showed the result of a CTC with V = 7000 on a unseen test speech data
+* The vocabulary does not have the word "dietary"
+* The model outputs "diet" and "terry" instead
+* The "community" has two consecutive peaks, the model "stutters"
+* Increase **V** improves performance
+
+<img src="images/i30.PNG" width="500"/>
+
+* The figure above shows that CTC without post-processing have bad performance
+* Due to CTC requires post-processing, there are some with opinion that it should not be considered an end-to-end model
+
+### Issue with CTC
+
+* The classifier at each time step decodes independently
+* For example, if the model is supposed to decode only one *c*
+* Instead, the output sequence is:
+    > <code> c ∅ c </code>
+* At the third time step, it outputs *c* again 
+* The model "stutters"
+* The classifier does not know ∅ is generated at second time step
+* This is only an exaggerated example
+* The encoder is a RNN, it still can pass information from previous time steps
+
+# RNN Transducer (RNN-T)
+
+* Before taking about RNN-T, let's talk about Recurrent Neural Aligner (RNA)
+
+## Recurrent Neural Aligner
+* CTC decoder takes one vector or frame as input and outputs one token
+* RNA adds dependency by changing it to a RNN decoder
+
+<img src="images/i31.PNG" width="200"/> 
+
+* As shown in the figure above, the previous token distribution is used as input in current time step
+* Similar to LAS decoder
+* Can one vector maps to multiple tokens ?
+* For example, can a vector maps to "th" ?
+* Of course, you can add "th" as a new token in practice
+* But we want our model to be flexible 
+* RNN-T is the solution to this question !
+
+## RNN Transducer
+
+<img src="images/i32.PNG" width="400"/> 
+
+* At a time step, continues to take in the same hidden state output and  outputs token until ∅ is outputted
+* After the model outputs ∅, go to the next frame
+* This enable the model to output multiple tokens for a frame
+* Have the same alignment problem as CTC, how to utilize all of the possible alignments during training ?
+* Addition of an extra RNN which acts as Language Model
+
+<img src="images/i33.PNG" width="400"/> 
+
+* The additional RNN takes the generated output as input 
+* The output of the RNN is consumed as input by RNN-T to generate the next tokens
+* This RNN will ignore ∅
+* Why need to have an extra RNN at decoder ?
+    * It acts as Language Model, can easily collect texts and train
+    * It is critical for training algorithm
+    * We need an algorithm which can enumerate all possible alignments during training, which has a pre-condition of ignoring ∅
+
+# Neural Transducer
+
+* RNN-T reads acoustic feature one at a time 
+* Neural transducer reads a bunch of acoustic features 
+
+<img src="images/i34.PNG" width="400"/> 
+
+* It applies attention to a window of acoustic features, generates tokens until ∅ is generated
+* Then, the window is moved, the same thing is repeated with new acoustic features in the window
+* The decision to focus on which acoustic features in the window is determined by attention mechanism
+
+<img src="images/i35.PNG" width="500"/> 
+
+* The figure above shows the effects of window size
+* Without using attention: only take in the last acoustic feature in the window
+    * The model performance deteriorates as window size increases
+* LSTM-attention : the attention weights at current time step is passed to a LSTM
+* The results show that as long as there is attention mechanism, the window size does not matter
+
+# Monotonic Chunkwise Attention (MoCHA)
+
+* Similar to Neural Transducer, with some modification at the attention
+* Dynamicly shift the window
+
+<img src="images/i36.PNG" width="300"/> 
+
+* Have an extra component which decides to place window at certain time step or not
+* If yes, place the window and vice versa
+* This model only output one token for each window
+* Does not output ∅
+* The output of **here?** is binary, cannot different binary, how to deal with this, refer to the paper [Chiu, et al., ICLR’18]
+
+# Summary
+
+| MODEL             | Description                                                                                |
+|-------------------|--------------------------------------------------------------------------------------------|
+| LAS               | Seq2Seq                                                                                    |
+| CTC               | Seq2Seq with linear classifier as decoder                                                  |
+| RNA               | Seq2Seq, 1-to-1                                                                            |
+| RNN-T             | Seq2Seq, 1-to-many                                                                         |
+| Neural Transducer | Seq2Seq, input one window<br>Takes in multiple acoustic features, outputs multiple tokens  |
+| MoCHA             | NT, dynamic shift window<br>Takes in multiple acoustic features, output 1 token per window |
