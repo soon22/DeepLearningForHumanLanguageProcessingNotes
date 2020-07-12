@@ -1,4 +1,4 @@
-## Speech Recognition
+# Speech Recognition
 
 * [Overview](#Overview)
     * [Output: Different Variations of Tokens](#Output:-Different-Variations-of-Tokens)
@@ -8,7 +8,7 @@
         * [Morpheme](#Morpheme)
         * [Byte](#Bytes)
         * [Percentage of usage of different type of tokens](#Percentage-of-usage-of-different-type-of-tokens)
-    * [Input: Acoustic Feature](#Input:-Acoustic-Feature)
+    * [Acoustic Feature](#Acoustic-Feature)
         * [How to obtain acoustic feature](#How-to-obtain-acoustic-feature)
         * [Percentage of usage of different type of acoustic feature](#Percentage-of-usage-of-different-type-of-acoustic-feature)
     * [Amount of Data](#Amount-of-Data)
@@ -16,7 +16,7 @@
 * [Speech Recognition Models](#Speech-Recognition-Models)
 
 
-### Overview
+# Overview
 
 * Speech recognition converts **speech** to **text**
 * Speech can be represented using sequence of vectors with length **T** and number of dimension **D**
@@ -24,9 +24,9 @@
 * **V** denotes the number of different tokens, it is a fixed number
 * Usually, **T** > **N**
 
-### Output: Different Variations of Tokens
+## Output: Different Variations of Tokens
 
-#### Phoneme :
+### Phoneme
 * A unit of sound 
 * For example: The phonemes which make up <code>One Punch Man</code>
 > * <code>W AH N P AH N CH M AE N</code>
@@ -34,7 +34,7 @@
 * Prior to Deep Learning era, phoneme is a widely used choice of token because it is directly related to sound signal
 * Disadvantage: requires experts such as linguists to build the lexicon for every words
 
-#### Grapheme :
+### Grapheme
 * Smallest unit of a writing system
 * For English, smallest units of writing system are 26 English alphabets
 * Needs to add a symbol **_** which represents blank spacing between different words
@@ -54,7 +54,7 @@
     * For example, the first phoneme for words *cat* and *Kate* is  **/kæt/**, whereas, the first grapheme are *c* and *k* respectively
     * Huge challenge for the model to learn the complicated relationship between sound and graphemes
 
-### Word :
+### Word
 * For example:
     * One Punch Man
     * **N** = 3 because it consists of 3 words
@@ -68,12 +68,12 @@
 * This is because **V** is too large
 * For example, agglutinative languages such as Turkish
     
-### Morpheme :
+### Morpheme
 * The smallest meaningful unit
 * Greater than grapheme, but smaller than word
 * For example, the English word *unbreakable* can be broken down into 3 morphemes: *un*, *break* and *able*
 
-### Bytes :
+### Bytes
 * Symbols for different language can be represented using UTF-8
 * Texts can be represented using sequence of bytes
 * The system can be language independent
@@ -104,7 +104,7 @@ Others
 | Speech :<br>One ticket to Taipei  | Speech recognition + Intent classification<br><buy_ticket> |
 | Speech : <br>One ticket to Taipei | Speech recognition + Slot filling<br>NA NA NA LOC    |
 
-### Input: Acoustic Feature
+## Acoustic Feature
 
 <img src="images/i1.png" width="400"/>
 
@@ -123,7 +123,7 @@ Others
 * Due to the overlap, some of the values of a vector is repeated in vector of neighboring frame
 * Can improve the model architecture and reduce cost by targetting this characteristic
 
-#### How to obtain acoustic feature :
+### How to obtain acoustic feature
 
 <img src="images/i2.png" width="400"/>
 
@@ -180,7 +180,7 @@ Others
     1. Seq-toSeq model
     2. Hidden Markov Model (HMM)
 
-### Speech Recognition Models 
+# Speech Recognition Models 
 * Listen, Attend, and Spell [Chorowski, et al.,NIPS'15]
 * Connectionist Temporal Classification (CTC) [Graves, et al., ICML'06]
 * RNN Transducer (RNN-T) [Graves, ICML workshop'12]
@@ -200,7 +200,7 @@ Others
 * HMM hybrid combines HMM and deep learning technique
 * Nowadays, almost no people do Speech Recognition without using deep learning 
 
-### Listen, Attend, and Spell (LAS)
+# Listen, Attend, and Spell (LAS)
 * LAS is a typical Seq2Seq model with attention
 * Listen refers to the encoder part 
 * Spell refers to the decoder part
@@ -210,7 +210,7 @@ Others
     * Other Speech Recognition models are also Seq2Seq model
     * People will not know which model you refer to if you called it Seq2Seq model
 
-### Listen: Encoder Choice
+## Listen: Encoder Choice
 * Listen refers to the encoder part
 
 <img src="images/i3.png" width="400"/>
@@ -239,7 +239,7 @@ across time steps
 * Filters at higher level can consider longer sequence of acoustic features
 * It is common to combine CNN and RNN
 
-### Listen: Down Sampling
+## Listen: Down Sampling
 * Down Sampling is important in Speech Recognition
 * For acoustic feature, 1 seconds of speech results in 100 frames or vectors
 * This results in very long sequence
