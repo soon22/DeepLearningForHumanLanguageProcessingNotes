@@ -295,7 +295,7 @@ across time steps
 * Apply **tanh** resulting in a vector
 * Multiply with **W** results in a scalar **α**
 
-<img src="images/i12.png" width="400"/>
+<img src="images/i12.PNG" width="400"/>
 
 * Then the <code>alpha</code> are passed through a softmax layer
 * The output of the softmax layer sums to one 
@@ -307,7 +307,7 @@ across time steps
 
 ## Spell
 
-<img src="images/i13.png" width="400"/>
+<img src="images/i13.PNG" width="400"/>
 
 * The decoder is a RNN
 * At the first time step of decoder, **z0** and **c0** are the input, the hidden state output is **z1**
@@ -320,19 +320,19 @@ across time steps
 * Using greedy approach, the token to be selected at the first time step is *c*
 * Another method is called beam search which is usually used, will be discussed later
 
-<img src="images/i15.png" width="400"/>
+<img src="images/i15.PNG" width="400"/>
 
 * The output of the hidden state at first time step is **z1**, this vector is used to compute **c1** 
 * At the second time step, calculate the distribution vector with **z0**,**c1** and the token *c* as input
 * The token to be selected at second time step is *a*
 
-<img src="images/i16.png" width="400"/>
+<img src="images/i16.PNG" width="400"/>
 
 * Repeat the step, until <EOS> is selected. <EOS> is a token which symbolizes **end of sentence**
 
 ### Beam Search
 
-<img src="images/i17.png" width="400"/>
+<img src="images/i17.PNG" width="400"/>
 
 * To illustrate beam search, assume there are two tokens **A** and **B** only
 * The way to look at the tree in the figure is from the bottommost
@@ -351,7 +351,7 @@ across time steps
 
 ## Training
 
-<img src="images/i18.png" width="200"/>
+<img src="images/i18.PNG" width="200"/>
 
 * During training, one-hot vector is used as target 
 * The prediction from previous time step is not used as input in current time step
@@ -368,13 +368,13 @@ Why teacher forcing ?
 
 ## Attention
 
-<img src="images/i19.png" width="400"/>
+<img src="images/i19.PNG" width="400"/>
 
 * Two types of attention
 * Bahdanau: The calculated context vector is used as input of the next time step
 * Luong: The context vector is used in current time step as input
 
-<img src="images/i20.png" width="200"/> 
+<img src="images/i20.PNG" width="200"/> 
 
 * Chan: Use both of the attention together
 * The author of LAS thinks that attention has too much flexibility
@@ -385,7 +385,7 @@ Why teacher forcing ?
 * Intuitively, when decoding a token at a time step, the focus should be on neighboring acoustic features only
 * As the model decodes from left to right, the attention weightage should move from left to right also like in the following figure
 
-<img src="images/i21.png" width="400"/> 
+<img src="images/i21.PNG" width="400"/> 
 
 * But since attention can consider entire sequence
 * The attention weightage may jump around instead of moving from left to right when decoding
@@ -393,7 +393,7 @@ Why teacher forcing ?
 
 ### Location Aware Attention
 
-<img src="images/i22.png" width="400"/> 
+<img src="images/i22.PNG" width="400"/> 
 
 * Define a window, for example, the window or range is 3 neighboring acoustic features in the figure above
 * In short, the attention weights undergo some transform called process history
@@ -402,14 +402,14 @@ Why teacher forcing ?
 
 ### Does LAS work ?
 
-<img src="images/i23.png" width="400"/> 
+<img src="images/i23.PNG" width="400"/> 
 
 * In the original paper, the author evaluated it using TIMIT dataset
 * The performance does not surpass the hybrid of HMM and deep learning
 * However, this result might not be true for actual Speech Recognition using other type of tokens
 * TIMIT uses phoneme as token
 
-<img src="images/i24.png" width="400"/> 
+<img src="images/i24.PNG" width="400"/> 
 
 * Experiments by other researchers showed that LAS beat HMM
 * Chiu shows that using end-to-end model like LAS reduced the size of the model
@@ -417,11 +417,11 @@ Why teacher forcing ?
 * LAS includes Language Model as a end-to-end model
 * Of course, adding an extra language model might improve the performance of LAS a little bit
 
-<img src="images/i25.png" width="400"/> 
+<img src="images/i25.PNG" width="400"/> 
 
 * The figure above shows that LAS can learn focus from left to right when decoding even when Location aware attention is not used
 
-<img src="images/i26.png" width="500"/> 
+<img src="images/i26.PNG" width="500"/> 
 
 * The figure above shows an interesting result
 * The ground truth is <code>aaa</code>
