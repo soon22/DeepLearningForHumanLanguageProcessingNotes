@@ -263,9 +263,10 @@ across time steps
     * Apply attention only to part of the sequence in the range
     * Usually, self-attention will look at whole sequence
     * For example, <code>x3</code> to <code>h3</code> will give attention to <code>x1</code> to <code>x4</code>
+    * Truncate the range, now it only looks at <code>x2</code> to <code>x4</code>
     * The range is a hyperparameter
 
-### Attention
+## Attention
 
 <img src="images/i8.png" width="300"/>
 
@@ -293,3 +294,143 @@ across time steps
 * Add both transformed vectors
 * Apply **tanh** resulting in a vector
 * Multiply with **W** results in a scalar **α**
+
+<img src="images/i12.png" width="400"/>
+
+* Then the <code>alpha</code> are passed through a softmax layer
+* The output of the softmax layer sums to one 
+* <code>alpha</code> can be seen as a measure of similarity between <code>z</code> and <code>h</code>
+* The context vector <code>c_0</code> is a weighted average of the **h** vectors at each time step, weighted by the softmax's output
+* Only those **h_t** with lots of similarity with **z0**  contribute to the context vector
+* Note that describing self-attention with analogy of google search and similarity is just for understanding
+* The context vector is the input for the RNN decoder
+
+## Spell
+
+<img src="images/i13.png" width="400"/>
+
+* The decoder is a RNN
+* At the first time step of decoder, **z0** and **c0** are the input, the hidden state output is **z1**
+* **z1** then undergoes some transform to output distribition over all tokens
+* The distribution is a vector of size **V**
+* Assigning probabilities to each of the **V** possible tokens
+* As shown in the above figure, at the first time step, the decoder assigns 0.0 to a, 0.1 to b and so on
+* There are two ways to select a token based on probabilities
+* Selecting the token which maximizes the distribution at each time step is called greedy search approach
+* Using greedy approach, the token to be selected at the first time step is *c*
+* Another method is called beam search which is usually used, will be discussed later
+
+<img src="images/i15.png" width="400"/>
+
+* The output of the hidden state at first time step is **z1**, this vector is used to compute **c1** 
+* At the second time step, calculate the distribution vector with **z0**,**c1** and the token *c* as input
+* The token to be selected at second time step is *a*
+
+<img src="images/i16.png" width="400"/>
+
+* Repeat the step, until <EOS> is selected. <EOS> is a token which symbolizes **end of sentence**
+
+### Beam Search
+
+<img src="images/i17.png" width="400"/>
+
+* To illustrate beam search, assume there are two tokens **A** and **B** only
+* The way to look at the tree in the figure is from the bottommost
+* At the first time step, there are two choices, the values at the edge is the output of the decoder, which can be interpreted as assigned probability for each token
+* In practice, we will log the probability. This is because the values might be too small if **V** is large
+* If **A** is selected at the first time step, this leads to another two possible choices at the second time step
+* Similarly, if we choose any of the token at any time step
+* The red path is when we use greedy approach, selecting the token with maximum probability at each time step
+* Using greedy approach during decoding does not promise or help to get output sequence with the highest probabilty
+* For green path, the first time step is B with 0.4, the second time step is 0.9 and the third step 0.9
+* Selecting lower probability choice currently, but in the long run may result in better path
+* Beam search keeps **B** best pathes at each time step
+* If **B** = 2, 2 paths with the highest probability multiplied together will be kept at each time step
+* This is better than greedy aprroach in decoding
+* **B** is a hyperparameter to be set
+
+## Training
+
+<img src="images/i18.png" width="200"/>
+
+* During training, one-hot vector is used as target 
+* The prediction from previous time step is not used as input in current time step
+* Instead, the ground truth for previous time step is used as input for current time step
+* The goal is to have the output vector to be as close as possible to the one-hot vector
+* In other words, minimize cross entropy or p(a) to be as large as possible
+* This is called **teacher forcing**
+
+Why teacher forcing ?
+* Let say the model is supposed to output *cat*
+* Initially, the model outputs 'x' instead of 'c' because the model is very bad at the beginning of training
+* If we used'x' as input to second time step, the model might learn to generate 'a' when given 'x', not generating 'a' when given 'c'
+* In other words, the model will be learning something wrong, this is wasting training time
+
+## Attention
+
+<img src="images/i19.png" width="400"/>
+
+* Two types of attention
+* Bahdanau: The calculated context vector is used as input of the next time step
+* Luong: The context vector is used in current time step as input
+
+<img src="images/i20.png" width="200"/> 
+
+* Chan: Use both of the attention together
+* The author of LAS thinks that attention has too much flexibility
+* At each time step, attention looks at entire sequence
+* This might be necessary for Machine Translation
+* where the first word in the output sequence might be due to final word in the input sequence
+* For Speech Recognition, it is not needed
+* Intuitively, when decoding a token at a time step, the focus should be on neighboring acoustic features only
+* As the model decodes from left to right, the attention weightage should move from left to right also like in the following figure
+
+<img src="images/i21.png" width="400"/> 
+
+* But since attention can consider entire sequence
+* The attention weightage may jump around instead of moving from left to right when decoding
+* The author added a component called Location Aware Attention
+
+### Location Aware Attention
+
+<img src="images/i22.png" width="400"/> 
+
+* Define a window, for example, the window or range is 3 neighboring acoustic features in the figure above
+* In short, the attention weights undergo some transform called process history
+* Then, it is used as input to the match function
+* The model learns to move attention weightage from left to right when decoding
+
+### Does LAS work ?
+
+<img src="images/i23.png" width="400"/> 
+
+* In the original paper, the author evaluated it using TIMIT dataset
+* The performance does not surpass the hybrid of HMM and deep learning
+* However, this result might not be true for actual Speech Recognition using other type of tokens
+* TIMIT uses phoneme as token
+
+<img src="images/i24.png" width="400"/> 
+
+* Experiments by other researchers showed that LAS beat HMM
+* Chiu shows that using end-to-end model like LAS reduced the size of the model
+* The conventional LFR system which combines separate models such as Language Model (LM) is much larger than LAS model
+* LAS includes Language Model as a end-to-end model
+* Of course, adding an extra language model might improve the performance of LAS a little bit
+
+<img src="images/i25.png" width="400"/> 
+
+* The figure above shows that LAS can learn focus from left to right when decoding even when Location aware attention is not used
+
+<img src="images/i26.png" width="500"/> 
+
+* The figure above shows an interesting result
+* The ground truth is <code>aaa</code>
+* The second best path decodes into <code>triple a</code>
+* They sound very different
+* But it seems LAS is able to learn very complicated relationship between input and output sequence and also the relationship between tokens
+
+## Limits of LAS
+
+* LAS start decoding after listening to the whole input
+* User may expect on-line speech recognition
+* Which means decoding as user is speaking, instead of decoding after user finished speaking
