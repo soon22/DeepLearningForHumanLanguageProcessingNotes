@@ -1,7 +1,7 @@
 # Speech Recognition
 
 * [Overview](#Overview)
-    * [Output: Different Variations of Tokens](#Output:-Different-Variations-of-Tokens)
+    * [Different Variations of Tokens](#Different-Variations-of-Tokens)
         * [Phoneme](#Phoneme)
         * [Grapheme](#Grapheme)
         * [Word](#Word)
@@ -24,7 +24,7 @@
 * **V** denotes the number of different tokens, it is a fixed number
 * Usually, **T** > **N**
 
-## Output: Different Variations of Tokens
+## Different Variations of Tokens
 
 ### Phoneme
 * A unit of sound 
