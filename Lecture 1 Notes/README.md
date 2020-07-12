@@ -106,7 +106,7 @@ Others
 
 ### Input: Acoustic Feature
 
-<img src="images/1.jpg" width="400"/>
+<img src="images/1.PNG" width="400"/>
 
 * Use a sliding window of size 25ms, with step size 10ms to segment the speech signal
 * A frame consists of 400 sample points if the sampling frequency is 16KHz
@@ -125,7 +125,7 @@ Others
 
 #### How to obtain acoustic feature :
 
-<img src="images/2.jpg" width="400"/>
+<img src="images/2.PNG" width="400"/>
 
 * The first step is to obtain spectogram from speech waveform using Fourier Transform
 * Waveform is too complicated to be used directly as input for Speech Recognition
@@ -213,7 +213,7 @@ Others
 ### Listen: Encoder Choice
 * Listen refers to the encoder part
 
-<img src="images/3.jpg" width="400"/>
+<img src="images/3.PNG" width="400"/>
 
 * Encoder is a Seq2Seq model which takes the sequence of acoustic features as input and outputs high level representations of the acoustic feature sequence
 * **x** denotes the input sequence of acoustic features
@@ -224,7 +224,7 @@ Others
     * RNN
     * 1D CNNs
 
-<img src="images/4.jpg" width="400"/>
+<img src="images/4.PNG" width="400"/>
 
 * Using 1D Convolutional Neural Network (CNN), the triangle represents the filter
 * The filter performs convolution on acoustic features which is in window
@@ -232,7 +232,7 @@ Others
 * A value is contributed at each time step when moving the filter right 
 across time steps
 
-<img src="images/5.jpg" width="400"/>
+<img src="images/5.PNG" width="400"/>
 
 * There are more than one filters (different colors)
 * Each filter contributes to a value at each time step 
@@ -251,12 +251,12 @@ across time steps
 
 **Down Sampling Methods :**
 
-<img src="images/6.jpg" width="400"/>
+<img src="images/6.PNG" width="400"/>
 
 * Pyramid RNN: Each time step of higher layer takes several output of time steps of lower layer as input
 * Pooling over time: Each time step of higher layer skips some time step of lower layer
 
-<img src="images/7.jpg" width="400"/>
+<img src="images/7.PNG" width="400"/>
 
 * Time-delay DNN (TDNN) : Similar to 1D CNN, but only consider first and final frame 
 * Truncated Self-attention : 
@@ -267,7 +267,7 @@ across time steps
 
 ### Attention
 
-<img src="images/8.jpg" width="300"/>
+<img src="images/8.PNG" width="300"/>
 
 * Encoder transforms the input sequence into a sequence of vectors **h**
 * There is a vector denoted by **z0**
@@ -279,7 +279,7 @@ across time steps
 
 **Dot Product Attention**
 
-<img src="images/10.jpg" width="200"/>
+<img src="images/10.PNG" width="200"/>
 
 * Do linear transform to both **h** and **z**
 * Results in 2 vectors with same dimensions
@@ -287,7 +287,7 @@ across time steps
 
 **Additive Attention**
 
-<img src="images/11.jpg" width="200"/>
+<img src="images/11.PNG" width="200"/>
 
 * Perform linear transform to both **h** and **z**
 * Add both transformed vectors
