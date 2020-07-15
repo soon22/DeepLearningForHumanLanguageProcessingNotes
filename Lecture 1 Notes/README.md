@@ -588,3 +588,150 @@ Why teacher forcing ?
 | RNN-T             | Seq2Seq, 1-to-many                                                                         |
 | Neural Transducer | Seq2Seq, input one window<br>Takes in multiple acoustic features, outputs multiple tokens  |
 | MoCHA             | NT, dynamic shift window<br>Takes in multiple acoustic features, output 1 token per window |
+
+# Hidden Markov Model
+## Overview
+* Hidden Markov Model (HMM) is used in speech recognition
+
+    <img src="images/i37.PNG" width="230"/> 
+
+* where **X** denotes the acoustic features , **Y** denotes the text
+* The equation means that if we can calculate **P(Y|X)**
+    * Enumerate all possible Y
+    * Calculate P(Y|X) for each Y
+    * Select the Y with the highest P(Y|X)
+* **Y*** denotes the Y with highest P(Y|X)
+* This is known as **Decode**
+* Using Bayes' theorem :
+
+<img src="images/i38.PNG" width="230"/> 
+
+* P(X) is ignored because unrelated
+* **P(X|Y)** : Acoustic model
+    * For example, HMM
+* **P(Y)** : Language model
+* HMM models **P(X|Y)**, therefore it must be used together with language model
+* Deep learning end-to-end models such as LAS and CTC model **P(Y|X)**
+* Theoretically, deep learning models do not need language model
+* However, adding language model or P(Y) does help with the performance
+
+## Phoneme, Tri-phone and states
+* HMM does not use sequence of tokens
+* Instead, it uses sequence of states, denoted by **S**
+* Instead of P(X|Y), HMM utilizes P(X|S)
+* Sequence of tokens is converted to sequence of states
+
+<img src="images/i39.PNG" width="400"/> 
+
+* Firstly, phoneme is converted to tri-phone 
+* Phoneme is the unit of sound
+* Tri-phone is a unit smaller than phoneme
+* A phoneme's pronunciation might be affected by neighboring phoneme
+* For example, there are 2 occurrence phoneme **uw** have different pronunciations due to previous phonemes **d** and **y**
+* Combine **uw** with neigboring phonemes to form more specific token
+* For example, **t-d+uw** and **d-uw+y**
+* The next step is to convert tri-phone into states
+* Number of states for each tri-phone can be 3 or 5, a value to be set 
+* If it's 3
+* Then we further split each tri-phone to 3 states such as **t-d+uw1**, **t-d+uw2** and **t-d+uw3**
+* These 3 states are more specific sound unit
+* Combining these 3 states will result in the **t-d+uw** sound
+
+## Transition Probability and Emission Probability
+<img src="images/i40.PNG" width="400"/> 
+
+* Assuming the states *a*, *b* and *c* correspond to the acoustic feature vectors as shown in the figure above
+* Requires two type of probabilities
+* Transition Probability : Probability to transition from one state to another
+    * For example, *a* and *b* are two states
+    * Transtion probability from *a* to *b* = <code>P(b|a)</code>
+* Emission Probability <code>P(x|s)</code>: Given a state,  what's the probability of producing a sequence of acoustic features
+    * Assume every state produces sound with fixed distribution
+    * For example, <code>P(x | "t-d+uw1")</code>
+    * Each state's sound distribution can be represented or modelled with a Gaussian Mixture Model (GMM)
+    * That's why HMM does not use tokens such as grapheme because the sound or pronunciation of character differs depending on usage 
+* About 30 phonemes, then convert to tri-phone and then each tri-phone to 3 states
+    * Result in <code>(30^3)*3</code> states
+    * Too many states !
+* One critical concept to solve problem of too many states is **tied-state**
+* Tied-state : 
+    * Originally, each state has a GMM
+    * Assume some states have same sound
+    * So, some states share a GMM
+    * In practice, these states share the pointer, which point to the address of the shared GMM
+    * The ultimate form of tied-state is **Subspace GMM**
+
+## Alignment
+* Even we have transition probabilities and emission probabilities, we still cannot calculate <code>P(X|S)</code>
+* Before this, we assume a certain correspondence between state sequence and sequence of acoustic features
+* But really, we have no idea of the correct **alignment** of state sequence 
+* This part is **hidden** part of HMM
+* In other words, we do not know which state produces each acoustic feature
+* There are many possible alignments as shown in following figure 
+
+<img src="images/i41.PNG" width="500"/> 
+
+* In the figure, we have 3 states and 6 acoustic feature vectors
+* Alignment is denoted using **h**
+* One alignmnment is <code>aabbcc</code>
+* The second alignment is <code>abbbbc</code>
+* The probability of a acoustic feature given an alignment <code>P(X|h)</code>can be calculated by multiplying the transition probabilities and emission probabilities togther
+* Different alignment will result in different **P(X|h)**
+
+<img src="images/i42.PNG" width="400"/> 
+
+* **P(X|S)** can be calculated by enumerating all possible alignments, and summing their P(X|h)
+* <code> h = align(S)</code> means that the alignments have to be valid
+* It has to follow the sequence *a* to *b* to *c*
+* Examples of invalid alignment:
+    * h = abccbc ( *c* occurs before *b* )
+    * h = abbbbb ( without *c* )
+
+## Using Deep Learning
+
+### Method 1 Tandem
+
+<img src="images/i43.PNG" width="500"/> 
+
+* Train a state classifier which predict the acoustic feature belongs to which state
+* Select the output of the classifier to substitute MFCC as a new acoustic feature
+* Not necessarily the classifier's output, can select the final hidden layer or bottleneck layer
+
+## DNN-HMM Hybrid
+
+<img src="images/i44.PNG" width="500"/> 
+
+* Replace GMM with a deep neural network (DNN)
+* GMM models P(x|a)
+* Deep learning models P(a|x)
+* It predict the state of a given acoustic feature
+* They are modelling different things
+* **P(x|a)** can be written in terms of **P(a|x)** as shown in figure above
+* P(a) can be counted from training data
+* P(x) is not related, so it's ignored
+* Basically, can still derive P(x|a) from DNN's output
+
+#### Opinions 
+* Advantages of why it is better than HMM in performance :
+    * Deep neural network can do discriminative training
+        * However, HMM can also do discriminative training
+    * Deep neural network has many parameters
+        * GMM can also have many parameters
+
+* Prof. Lee's opinion :
+    * Both of the reasonings up there are not adequate to explain the performance
+    * Originally, each state must their own GMM with means and variances
+    * Now every state shares a DNN 
+
+### Method to train a state classifier
+* Do alignment and get the alignment with the highest probability
+* Train DNN to predict the acoustic feature's state 
+* This creates better aligment 
+* Then, train the DNN again with this better alignment
+
+<img src="images/i45.PNG" width="250"/> 
+
+* The process is as shown in figure above
+* Do the alignment with DNN1
+* Train another DNN2
+* Microsoftt reached human parity 
