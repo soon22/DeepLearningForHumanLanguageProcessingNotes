@@ -697,22 +697,29 @@ Why teacher forcing ?
 * Select the output of the classifier to substitute MFCC as a new acoustic feature
 * Not necessarily the classifier's output, can select the final hidden layer or bottleneck layer
 
-## DNN-HMM Hybrid
+
+### Method 2 DNN-HMM Hybrid
 
 <img src="images/i44.PNG" width="500"/> 
 
-* Replace GMM with a deep neural network (DNN)
-* GMM models P(x|a)
-* Deep learning models P(a|x)
-* It predict the state of a given acoustic feature
+* For HMM, each state has a GMM which represents the distribution of acoustic feature given that state 
+* As shown in the figure above, let's say we have a state *a*, the GMM models the <code>P(x|a)</code>
+* The idea of DNN-HMM hybrid is to **replace GMM with a deep neural network** 
+* GMM models **P(x|a)**
+* Whereas, the deep neural network models **P(a|x)**
 * They are modelling different things
-* **P(x|a)** can be written in terms of **P(a|x)** as shown in figure above
+* As shown in the figure above, **P(x)** is irrevelant and **P(a)** can be counted from training data
+* Based on the expression, the DNN output can be thought of as the scaled version of P(a|x) by a factor of P(a)
+* The deep neural network predict the state of a given acoustic feature
+
+**Summary:**
+* **P(x|a)** can be written in terms of **P(a|x)**
 * P(a) can be counted from training data
 * P(x) is not related, so it's ignored
 * Basically, can still derive P(x|a) from DNN's output
 
-#### Opinions 
-* Advantages of why it is better than HMM in performance :
+**Opinions** 
+* Advantages of why researchers claimed it is better than HMM in performance, note are not good reasons:
     * Deep neural network can do discriminative training
         * However, HMM can also do discriminative training
     * Deep neural network has many parameters
@@ -722,6 +729,7 @@ Why teacher forcing ?
     * Both of the reasonings up there are not adequate to explain the performance
     * Originally, each state must their own GMM with means and variances
     * Now every state shares a DNN 
+    * The DNN plays a role similar to the Subspace GMM 
 
 ### Method to train a state classifier
 * Do alignment and get the alignment with the highest probability
@@ -729,9 +737,12 @@ Why teacher forcing ?
 * This creates better aligment 
 * Then, train the DNN again with this better alignment
 
-<img src="images/i45.PNG" width="250"/> 
-
-* The process is as shown in figure above
-* Do the alignment with DNN1
-* Train another DNN2
-* Microsoftt reached human parity 
+**Process**
+* Begin with data and labels but without alignment
+* Initially, the alignment of acoustic features and states is not known
+* Train HMM-GMM model first
+* Select alignment with the highest probability 
+* Train a deep neural network (named *DNN 1*) based on this alignment
+* Realignment: *DNN 1* is used to do alignment again
+* Train another deep neural network (named *DNN 2*) with realigned data
+* Repeat these steps
