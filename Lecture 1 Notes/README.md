@@ -593,7 +593,7 @@ Why teacher forcing ?
 ## Overview
 * Hidden Markov Model (HMM) is used in speech recognition
 
-    <img src="images/i37.PNG" width="230"/> 
+<img src="images/i37.PNG" width="230"/> 
 
 * where **X** denotes the acoustic features , **Y** denotes the text
 * The equation means that if we can calculate **P(Y|X)**
@@ -693,9 +693,15 @@ Why teacher forcing ?
 
 <img src="images/i43.PNG" width="500"/> 
 
-* Train a state classifier which predict the acoustic feature belongs to which state
-* Select the output of the classifier to substitute MFCC as a new acoustic feature
-* Not necessarily the classifier's output, can select the final hidden layer or bottleneck layer
+* The first method is called **tandem**
+* This method does not change or modify the HMM usage
+* A deep neural network is added as a layer between the acoustic features and the HMM
+* Train a deep neural network as a state classifier which predict the acoustic feature belongs to which state
+* The output of the classifier can be interpreted as a vector which consists of the conditional probability distribution of states given the acoustic feature
+* As shown in the figure above, the states are *a*, *b*, *c* and more
+* Given an acoustic feature's vector as input <code>x_i</code>, the state classifier generates a vector which consists <code>P(a|x_i), P(b|x_i) </code> and more
+* The output vector is used to substitute MFCC as a new acoustic feature for HMM
+* Besides using the output of classifier, one may also opt to use the output of hidden layer of the state classifier as new acoustic feature of HMM
 
 
 ### Method 2 DNN-HMM Hybrid
@@ -746,3 +752,213 @@ Why teacher forcing ?
 * Realignment: *DNN 1* is used to do alignment again
 * Train another deep neural network (named *DNN 2*) with realigned data
 * Repeat these steps
+
+## Alignment of HMM, CTC and RNN-T
+### LAS Does Not Require Alignment
+<img src="images/i46.PNG" width="200"/> 
+
+* End-to-end models such as LAS can be thought of as modeling P(Y|X)
+* For example, Y can be tokens such as words and phonemes which are larger than states
+* X refers to the acoustic feature
+
+<img src="images/i47.PNG" width="300"/> 
+
+* During decoding, we want to get the Y with the highest probability denoted by Y*
+* However, we cannot really get Y* because we cannot solve the optimization problem
+
+
+<img src="images/i48.PNG" width="300"/>
+
+* LAS directly computes P(Y|X)
+* *c* denotes the context vector
+* The *superscript* denotes the time step
+* <code>*c*0</code> denotes the context vector for the first time step
+
+**Process :**
+* Both *z*0 and *c*0 are used to calculated *z*1, which goes to some transform to generate a vector of size **V**
+* That vector is the probability distribution of Y
+* For example, *a* is selected because its probability is the highest
+* The vector representing *a* is used as input to calculate *z*2, which generates the distribution vector 
+* Multiplying the probabilities together to get P(Y|X)
+    * <code>P(Y|X) = P(a|X) * P(b|a,X) *....</code>
+* Training does not solve the decoding optimization problem, it uses an approximation instead
+* It means that we don't really maximize Y with largest P(Y|X) during training
+* During training, an approximation is used. This is different from finding the maximal P(Y|X) of decoding optimization problem
+    * During training, we find the maximum of distribution vector at each time step. This is different from P(Y|X). Therefore, it's written as <code>Y^</code>
+    * During training, find parameters so that the probability <code>Y^</code> given X as large as possible
+    * Therefore, have to use beam search to find a better result
+
+
+## Alignment of CTC and RNN-T
+* LAS does not need alignment because it can directly compute P(Y|X)
+    * <code>P(Y|X) = P(a|X) * P(b|a,X) *....</code>
+* Other speech recognition models such as **CTC** and **RNN-T** need **alignment** to calculate P(Y|X)
+* For example:
+    * Acoustic features : x1, x2, x3, x4
+    * Tokens : a,b
+* Duplicate tokens or add ∅ so that the sequence length matches the sequence length of acoustic features
+* We can list down alignments. For example :
+    * Aligment h1 = a, ∅, b, ∅ 
+* However, we can only compute probability for certain alignment denoted by <code>P(h|X)</code>
+* Incapable of computing the probability for certain acoustic features <code>P(Y|X)</code>
+* The solution for calculating <code>P(Y|X)</code> for CTC and RNN-T is same as the method of calculating P(X|S) for HMM
+    * Summing up the probabilities for all possible valid alignments
+
+<img src="images/i49.PNG" width="500"/>
+
+* <code>align(Y)</code> means valid aligment 
+* Summing up all the probabilities for every possible valid alignments denoted by <code>P(h|X)</code> to obtain <code>P(Y|X)</code>
+
+### Enumerate all possible alignments
+
+<img src="images/i50.PNG" width="500"/>
+
+* As shown in the image, there are 6 vectors for acoustic features
+* There are 3 characters
+* Alignment for HMM : Duplicate the characters to length T
+    * Example alignments: c c a a a t , c a a a a t
+* Alignment for CTC :
+   * Duplicate character AND
+   * Add ∅ to length **T**
+   * Example alignment : c ∅ a a t t
+* Alignment for RNN-T :
+    * Add ∅ x T
+    * In the figure, **T**=6
+    * Remember that when RNN-T generates ∅, it means it is ready to see the next acoustic feature
+    * So have to generate 6 ∅ to go through all 6 acoustic features 
+
+**Showing Alignment using Trellis Graph**
+
+**HMM**
+
+<img src="images/i51.PNG" width="500"/>
+
+* As shown by the pseudocode in the figure above, alignment for HMM is done by duplicating the tokens
+    * The sum of number of times to duplicate each token is equal to T
+    * Each token must be used at least once
+* Trellis Graph visualizes the alignments
+* There are many possible alignments
+
+**CTC**
+
+<img src="images/i52.PNG" width="500"/>
+
+* Alignment strategy for CTC :
+    * Duplicate character AND
+    * Add ∅ to length **T**
+    * The sum of the number of times each token is duplicated and the number of times ∅ is inserted must be equal to **T**
+    * Must add least use each token once
+    * Can opt to not insert ∅
+
+<img src="images/i53.PNG" width="400"/>
+
+* If currently at a token, can have 3 options
+    1. Duplicate token
+    2. Insert ∅
+    3. Next token
+* Can skip ∅
+* The alignment can ends with **t** or **∅**
+
+<img src="images/i54.PNG" width="400"/>
+
+* If currently at ∅, can have 2 options 
+    1. Duplicate ∅
+    2. Next token
+* Cannot skip any token
+* The alignment can ends with **t** or **∅**
+
+<img src="images/i55.PNG" width="400"/>
+
+* The figure above shows the summary for the options available for 2 situations
+
+<img src="images/i56.PNG" width="400"/>
+
+* Two possible alignments 
+
+<img src="images/i57.PNG" width="400"/>
+
+* The exception is when we have repeating tokens
+* For example, there are two **e** for the word **see**
+* In this situation, must insert at least a ∅ between two **e**
+
+**RNN-T**
+
+<img src="images/i58.PNG" width="500"/>
+
+* As shown in the figure above, have to insert at least ∅ **T** times
+    * Each token is inserted one time
+    * Optional to insert some ∅ before the final token
+    * After the final token, insert at least one ∅
+
+<img src="images/i59.PNG" width="500"/>
+
+* Two possible alignments
+
+<img src="images/i60.PNG" width="500"/>
+
+* Visualization for HMM, CTC and RNN-T
+
+### How to sum over all the alignments 
+
+#### Score computation for an alignment
+
+* Lets go through the calculation of score **P(h|X)** for an alignment *h*
+
+<img src="images/i61.PNG" width="500"/>
+
+* The figure above illustrates an alignment <code>*h* =  ∅ c ∅ ∅ a ∅ t ∅ ∅</code>
+* The score P(h|X)is a product of conditional probabilities
+
+<img src="images/i62.PNG" width="500"/>
+
+* The figure above shows a RNN-T
+* RNN-T has an extra RNN 
+    * Represents the relationship between tokens
+    * Doesn't eat ∅ as input
+
+**Process :**
+* To differentiate between both seq2seq models for RNN-T, we are going to call the main model and the extra RNN as seq2seq model and RNN respectively
+* A unique token < BOS > which means start of sentence is taken in by the RNN
+* The RNN spits out *l*0
+* At the first time step, seq2seq model takes in *l*0 and *h*1 as input and generates a distribution vector denoted by <code>p1,0</code>
+* The value for ∅ is the highest in the distribution vector <code>p1,0</code>, it is interpreted as generating a ∅
+* For RNN-T, ∅ means it wants to see the second acoustic feature, we denote it as *x*2 here
+* *h*2 is the hidden state's output after eating *x*2
+* seq2seq model then generates distribution vector denoted by <code>p2,0</code> . The value for the token *c* is the highest 
+* RNN eats *c* and activation from previous time step to generate *l*1
+* *l*1 then gets consumed by seq2seq model to generate ∅
+* The process goes on and on until **T** number of ∅ is generated. This means that ∅ has done eating all the **T** number of acoustic features
+* Notice that RNN does not eat **∅** as input, instead ∅ is ignored
+
+<img src="images/i63.PNG" width="500"/>
+
+* Each grid corresponds to a distribution vector
+* For example, <code>p4,2</code> means that it has seen 4 acoustic feature vectors and produced 2 tokens
+    * subscript 1 : Number of acoustic features seen
+    * subscript 2 : Number of tokens produced
+* Each arrow which points from a grid to another grid correspond to a probability from the distribution vector 
+* <code>p4,2(∅)</code> is the probability of ∅ from the distribution vector denoted by <code>p4,2</code>
+
+<img src="images/i64.PNG" width="500"/>
+
+* The figure above wishes to illustrates the fact that the distribution vector <code>p4,2</code> is fixed or does not change, no matter how you get there
+* Why is it so ? The answer is given in the figure
+* To the right of the Trellis graph, there is a RNN that's side by side and matching the token rows of the Trellis graph
+* That RNN is the additional RNN of RNN-T
+* No matter what path you take, you have to go through 4 acoustic features and generates 2 tokens
+* Since RNN ignores ∅, the input to the RNN will surely be the second token **a**
+* RNN's previous step activation also remain the same no matter how many ∅ is generated before 
+* Both inputs remain the same, thus the RNN will spit out the same *l*2 regardless of the paths taken
+* By the time to generate <code>p4,2</code>, seq2seq model will be taking *h*4 and *l*2 as input
+* This results in the same <code>p4,2</code> to be generated regardless of the paths taken
+
+#### Summing up score of all alignments
+
+<img src="images/i65.PNG" width="500"/>
+
+* <code>α_*i*,*j* </code> is the summation of the summation of the scores of all the alignments that reads *i*-th acoustic features and output *j*-th tokens
+* Each grid corresponds to a **α**
+* α of an immediate grid is the weighted average of all the α of grids which are one step away of that grid and are valid option to transition to that immediate grid, weighted by the probabilities that represented by the arrows of the grids leading to the immediate grid
+* As shown in the figure, α4,2 can be calculated using α3,2 and α4,1 and are weighted by p4,1(a) and p3,2(∅)
+* The α_i,j at the bottom right is equal to P(Y|X) = sum of all the P(h|X) for every possible valid alignments of Y denoted by <code>h ∈ align(Y) </code>
+* 
