@@ -809,7 +809,12 @@ Why teacher forcing ?
 * <code>align(Y)</code> means valid aligment 
 * Summing up all the probabilities for every possible valid alignments denoted by <code>P(h|X)</code> to obtain <code>P(Y|X)</code>
 
-### Enumerate all possible alignments
+### Content
+1. Enumerate all the possible alignments
+2. How to sum over all the alignments
+3. Training
+4. Testing (Inference,decoding)
+### 1. Enumerate all possible alignments
 
 <img src="images/i50.PNG" width="500"/>
 
@@ -952,7 +957,7 @@ Why teacher forcing ?
 * By the time to generate <code>p4,2</code>, seq2seq model will be taking *h*4 and *l*2 as input
 * This results in the same <code>p4,2</code> to be generated regardless of the paths taken
 
-#### Summing up score of all alignments
+### 2. How to sum over all alignments
 
 <img src="images/i65.PNG" width="500"/>
 
@@ -961,4 +966,76 @@ Why teacher forcing ?
 * α of an immediate grid is the weighted average of all the α of grids which are one step away of that grid and are valid option to transition to that immediate grid, weighted by the probabilities that represented by the arrows of the grids leading to the immediate grid
 * As shown in the figure, α4,2 can be calculated using α3,2 and α4,1 and are weighted by p4,1(a) and p3,2(∅)
 * The α_i,j at the bottom right is equal to P(Y|X) = sum of all the P(h|X) for every possible valid alignments of Y denoted by <code>h ∈ align(Y) </code>
-* 
+* It means you can compute the summation of the scores of all the alignments 
+* How to compute ?
+* Using the idea of dynamic programming, one can calculate α for every grid, starting from the top left grid
+
+### 3. Training
+
+* The following expression is the objective function for training :
+
+<img src="images/i66.PNG" width="200"/>
+
+* During training, we want find a set of parameters denoted by <code>θ*</code> which maximizes objective function
+* Given sequence of acoustic features denoted by **X** and the annotation for **X**, we want to maximzes the *log* of <code>P(Y^|X)</code>
+* The following expression shows how to obtain <code>P(Y^|X)</code>
+
+<img src="images/i67.PNG" width="200"/>
+
+* Basically, summing over all the scores of all the valid alignments
+* The score of an alignment is denoted by <code>P(h|X)</code>, it is the product of all the probabilities
+* The following figure shows an example 
+
+<img src="images/i68.PNG" width="500"/>
+
+* Remember the Trellis graph ? Each of the grid of the Trellis graph represents a distribution vector such as <code>p1,0 , p2,0 ...</code>
+* The arrow of the Trellis graph represents a probability from the distribution vector
+* For example, <code>p1,0(∅)</code> is the probability of ∅ from the distribution vector <code>p1,0</code>. 
+* Essentially, score of an alignment can be obtained by multplying the probabilities represented by the arrows leading from the start to end of alignment in Trellis graph
+* The following figure shows that all the alignments
+
+<img src="images/i69.PNG" width="500"/>
+
+* Each alignment is a path from start to end 
+* P(Y^|X) can be obtained by multiplying the probabilities for all the paths and sum them up together
+* The loss function needs to be differentiated againts parameters to obtain the gradients denoted by <code>dP(Y^|X)/dθ</code> so that we can solve it using gradient descent
+
+<img src="images/i70.PNG" width="300"/>
+
+* P(Y^|X) is influenced by the probabilities such as p4,1(a) and p3,2(∅) which in turn are influenced by the parameters of the model θ
+* The following figure shows that derivative of P(Y^|X) with respect to the parameter can be obtained using chain rule
+
+* It is the sum of partial derivative of the P(Y^|X) with respect to each intermediate priobability multiplied by the partial derivative of the intermediate probability wirh respect to the parameter
+
+<img src="images/i71.PNG" width="500"/>
+
+* The partial derivative of intermediate probability with respect to θ can be obtained using backpropagation through time as shown in the following figure 
+
+<img src="images/i73.PNG" width="500"/>
+
+* The process is same as backpropagation for normal seq2seq model
+
+<img src="images/i74.PNG" width="500"/>
+
+* The figure above shows that the partial derivative of P(Y^|X) against the intermediate probability p4,1(*a*) can be expressed as the sum of scores for all the alignments which have p4,1(*a*) scaled by <code>1/p4,1(*a*)</code>
+
+<img src="images/i75.PNG" width="500"/>
+
+* Introducing new stuff here, <code>β*i*,*j*</code> is the summation of the score of all the alignments starting from *i*-th acoustic feature and *j*-th token to the end of alignment
+* Each grid *i*,*j* has a β*i*,*j*
+* β is the opposite to the α
+* Let say, we want to calculate β4,2
+* From the grid for p4,2 , there are two options which will lead us into two different grids:
+    * Generate *t* leads to the grid 4,3
+    * Read *x*5 and generate ∅ leads to the grid 5,2
+* β4,2 is the weighted average of β4,3 and β5,2 weighted by the probabilities obtained from the distribution vector p4,2
+
+<img src="images/i76.PNG" width="500"/>
+
+* Going back to calculate the sum of scores for all the alignments with p4,2(a)
+* This sum is <code>α4,1 * p4,1(*a*) * β4,2</code>
+* α4,1 sums up score for all the alignments from the start to the grid 4,1
+* If we generate *a* when at grid 4,1 , we would reach the grid 4,2
+* β4,2 sums up score for all the alignments from the grid 4,2 to the end
+* Multiplying together these terms we can obtain the partial derivative
+* At this point, we know how to compute the gradients during training
