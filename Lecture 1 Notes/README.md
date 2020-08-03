@@ -1039,3 +1039,101 @@ Why teacher forcing ?
 * β4,2 sums up score for all the alignments from the grid 4,2 to the end
 * Multiplying together these terms we can obtain the partial derivative
 * At this point, we know how to compute the gradients during training
+
+### Testing (Inference, Decoding)
+
+* Ideally, we want to find the Y which maximizes <code>*log* P(Y|X)</code>
+* The ideal expression is as follows :
+
+<img src="images/i77.PNG" width="250"/>
+
+* P(Y|X) is a result of addition of scores of many alignments, the previous expression can expanded to the following expression :
+
+<img src="images/i78.PNG" width="250"/>
+
+* This is a very complicated task because :
+    1. We have to enumerate all possible **Y**s
+    2. For each Y, we have to enumerate over all possible alignments
+* In practice, we can simplify the expression to the following :
+
+<img src="images/i79.PNG" width="250"/>
+
+* Instead of summing the scores of all alignments, we find the maximum score. This assumes that the maximum score is much larger than other scores
+* The steps:
+1. Find the alignment *h* with the maximum score which is denoted by *h**
+
+<img src="images/i80.PNG" width="250"/>
+
+2. Find the Y which correspond to *h**             
+    
+<img src="images/i81.PNG" width="200"/>
+
+**How to calculate P(h|X) ?**
+
+* Let say we have a alignment *h* as follows:
+
+<img src="images/i82.PNG" width="200"/>
+
+* The P(h|X) is the product of probabilities :
+
+<img src="images/i83.PNG" width="300"/>
+
+**How to find the alignment with maximum score ?**
+
+<img src="images/i84.PNG" width="300"/>
+
+* In practice, we take the maximum probability of distribution vector at each time step and multiply them together as shown in the figure above
+* However, selecting the alignment out of maximum probability at each time step does not necessarily result in <code>max *log* P(h|X) </code>
+* Using beam search results in better approximation
+
+**Summary**
+
+<img src="images/i85.PNG" width="500"/>
+
+* For LAS, alignment is stated to be not **explicit**
+* LAS uses attention to discover input and output relationship in contrast to CTC and RNN-T which require alignment
+
+### Language Model
+
+* Language model estimate the probibility of token sequence
+* The token sequence is denoted by **Y** as shown in following figure
+
+<img src="images/i86.PNG" width="300"/>
+
+* The probability of token sequence P(Y) is given by the joint probability of each token in Y as expressed in the following :
+ 
+<img src="images/i87.PNG" width="180"/>
+
+**Why language model ?**
+
+* The following expression is the objective function for HMM
+
+<img src="images/i88.PNG" width="250"/>
+
+* **P(Y)** refers to language model 
+* HMM models P(X|Y), does not model P(Y)
+* Language model is necessary for HMM 
+* On the other hand, deep learning model does not seem to require language model
+* As shown in following expression, deep learning model seems to include language model **P(Y)** naturally
+
+<img src="images/i89.PNG" width="250"/>
+
+* Actually, adding an extra language model does help to improve performance of deep learning model for speech recognition
+* This is also applies for other tasks which the output is text. For example, machine translation.
+* Deep learning model's expression consists of :
+    * P(Y|X) 
+    * P(Y)
+* P(Y|X) requires **paired training data**, which needs substantial effort to collect
+* P(Y) requires data that's **easy to collect** . We do not need **paired** data to train a language model
+* If we train a deep learning model using paired data only, the model can learn to model P(Y)
+* However, it might not be a good estimator of P(Y) because the amount of paired data is limited
+* However, this is not the case if we have an extra language model which is trained using unpaired text
+* We can obtain data to train language model much easier
+* For example, we can run a web scrapping program to obtain large amount of unlabeled text such as news articles or Wikipedia content
+
+**Comparison between amount of data**
+* In research, paired data for speech recognition is about 12500 hours transcribed audio
+* Assume a person can speak 130 words per minute
+* We can estimate it consists of about : 12500 x 60 x 130 =~ 100 million words
+* For BERT (a very large language model), more than 300 million words
+
