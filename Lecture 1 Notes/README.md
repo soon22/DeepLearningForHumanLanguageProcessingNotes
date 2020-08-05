@@ -1137,3 +1137,135 @@ Why teacher forcing ?
 * We can estimate it consists of about : 12500 x 60 x 130 =~ 100 million words
 * For BERT (a very large language model), more than 300 million words
 
+### N-gram
+* Before deep learning, N-gram is used to estimate P(y1, y2, ..., yn)
+* Collect a large amount of text data as training data
+* Because complexity of human language sentences, some sentences or token sequences may not appear in dataset
+* N-gram breaks down P(y1, y2 , ..., yn) into product of smaller conditional probability 
+* For 2-gram, the P(Y) is as shown in the following :
+
+<img src="images/i90.PNG" width="400"/>
+
+* We can estimate P(*beach* | *nice*) from training data
+* It is the ratio of count of "nice beach" to count of "nice"
+* This can be generalized to 3-gram, 4-gram etc
+
+#### Challenge of N-gram
+* The estimated probability for the token sequence is not accurate
+    * Especially for n-gram with large n
+    * This is because as the sentence length gets longer, the complexity increases
+    * Many valid token sequence might not appear in the training set
+* For example, if training data consists of the following :
+> * The dog ran
+> * The cat jumped 
+* If we are asked to estimate the probability of following sentences which do not exist in training set :
+    * P(jumped |the,dog)
+    * P(ran | the,cat)
+
+* It is better to assign some small probability rather than 0 
+* This is known as **language model smoothing**
+
+#### Continuous Language Model
+* Training a model to **fill in the blanks**
+* Borrowing idea from recommendation system
+* Recommendation system is used by Netflix to suggest which movie to watch
+* Let say we watch 2 users :
+    * User A watched Godzilla and Titanic and gave them high rating
+    * User B watched King Kong and gave it high rating
+    * The recommender system will suggest movies similar to Titanic to user B
+* The essence or main idea is to infer missing information from complete data which is similar 
+* We can use this idea to deal with the problem of token sequences do not exist in training set
+
+<img src="images/i91.PNG" width="600"/>
+
+* The first column consists of all the words in the vocabulary
+* Each word has a vector that correspond to it, that vector is denoted *v*
+* For example, the first word *ran* has a vector correspond to it denoted by *v*1
+* The first row lists history, each word consists of a vector denoted by *h*
+* In a way, both *v* and *h* are vectors which represent the word's characteristic or attribute
+* *n* refers to the count
+* *n* is the dot product of some pair of *v* and *h*
+* For example, *n*22 refers to the count of "cat jumped"
+* Both *v* and *h* are vectors to be learned using Gradient Descent by minimizing the objective function shown in the figure
+* Some of the pairs do not exist in the training set
+* The idea is to train a model to learn the vectors, fill in the blanks by minimizing the errors between the dot product and the actual count
+* For example, "cat jumped" is in training set
+* "dog jumped" does not exist
+* History "cat" and "dog" have similar vector. The vectors are denoted by *h*_cat and *h*_dog respectively
+* If dot product of *v* for *jumped* and *h* of cat is large, then *v* for *jumped* and *h* of dog should be large accordingly
+* The smoothing is automatically done
+
+**One linear hidden layer Continuous Language Model:**
+
+<img src="images/i92.PNG" width="600"/>
+
+* The word is represented using *1-of-N* encoding
+* For example, if there are two words namely *cat* and *dog*, *cat* will be represented using  [1,0] and *dog* will be represented using [0,1]
+* The edges which connect the input layer to the hidden layer are *h*_cat and *h*_dog 
+* If input is *cat*, the [1,0] results in h*cat to the hidden layer
+* The edges between hidden layer and output layer represents *v*_ran and *v*_sit
+* In this example, *h*dog will come across both *v*_ran and *v*_sit
+* The output can be seen as prediction for count of *ran* and *sit* together with *dog*
+* The objective of training is to minimize the counts in vector form and the predicted counts
+
+### Neural Network based Language Model
+* Use neural network to train language model
+* Exists since 2003 in Bengio's paper (probably). It's actually earlier than Continuous Language Model
+    * Inside the paper, there is something similar to word embedding
+    * Visualized the latent representation of the trained network, it looks similar to today's word embedding
+* Collect a large amount of text, does not need to be labeled
+* Train a neural network to predict the next word
+* For example, we have a text "Pizza is nice" 
+* The input to the neural network is "Pizza is", we train the model to predict the next word by setting up "nice" as the target word
+* The following figure shows an architecture of NN based language model
+
+<img src="images/i93.PNG" width="600"/>
+
+* Each word is represented using 1-of-N encoding
+* Each time, NN eats a word to predict the next word, NN generates a distribution vector
+
+#### RNN-based LM
+* Mikolov INTERSPEECH 2010
+* 1-of-N encoding cannot represent very long history
+* History cannot be very lon
+* Usually, often use LSTM because it returns good result
+
+#### How to use LM to improve LAS ?
+
+<img src="images/i94.PNG" width="350"/>
+
+* Shallow fusion : Integrate after training at the output
+* Deep fusion : Integrate after training at the hidden layer
+* Cold fusion : Integrate before training at the hidden layer
+
+**Shallow Fusion**
+
+<img src="images/i95.PNG" width="350"/>
+
+* Most common language model 
+
+**Deep Fusion**
+
+<img src="images/i96.PNG" width="350"/>
+
+* Combine LAS and LM together at the hidden layer, both are feed to a new **network**
+* After LAS and LM were trained, need to prepare data to train new network
+* After the network is trained, cannot simply switch LM 
+* If want to change LM, need to retrain the network
+* When to change LM, for example, when change domain
+* Workaround :
+
+<img src="images/i97.PNG" width="350"/>
+
+* Take the output right before softmax of LM as input to the network
+* When change LM, does not need to retrain network
+
+**Cold Fusion**
+
+* We have a trained LM which is ready
+* Train LAS together with the trained LM
+* In this way, LM converges faster during training
+* This maybe because the LM is already well-trained
+    * During training, LAS does not need to learn again relationship between words
+    * This make the training converges faster
+* If you want to change the LM, LAS has to be trained again
