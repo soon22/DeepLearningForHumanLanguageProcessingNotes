@@ -13,8 +13,50 @@
         * [Percentage of usage of different type of acoustic feature](#Percentage-of-usage-of-different-type-of-acoustic-feature)
     * [Amount of Data](#Amount-of-Data)
 
+(From here onwards no hyperlink because consists of punctuations)
 * [Speech Recognition Models](#Speech-Recognition-Models)
-
+    * Listen, Attend, and Spell (LAS)
+        * Listen: Encoder Choice
+        * Listen: Down Sampling
+        * Attention
+        * Spell
+            * Beam Search
+        * Training
+        * Attention
+        * Choice of Attention
+            * Location Aware Attention
+        * Does LAS work ?
+        * Limits of LAS
+    * Connectionist Temporal Classification
+        * Does CTC works 
+        * Issue with CTC
+    * RNN Transducer (RNN-T)
+        * RNN Transducer (RNN-T)
+    * Neural Transducer
+        * Monotonic Chunkwise Attention (MoCHA)
+    * Hidden Markov Model
+        * Overview
+        * Phoneme, Tri-phone and states
+        * Transition Probability and Emission Probability
+        * Alignment
+        * Using Deep Learning
+            * Method 1 Tandem
+            * Method 2 DNN-HMM Hybrid
+            * Method to train a state classifier
+    * Alignment of HMM, CTC and RNN-T
+        * LAS Does Not Require Alignment
+        * Alignment of CTC and RNN-T
+            1. How to sum over all the alignments 
+                * Score computation for an alignment
+            2. How to sum over all alignments
+            3. Training
+            4. Testing (Inference, Decoding)
+* Language Model
+    * N-gram
+    * Challenge of N-gram
+    * Continuous Language Model
+    * Neural Network based Language Model
+        * RNN-based LM
 
 # Overview
 
@@ -366,7 +408,7 @@ Why teacher forcing ?
 * If we used'x' as input to second time step, the model might learn to generate 'a' when given 'x', not generating 'a' when given 'c'
 * In other words, the model will be learning something wrong, this is wasting training time
 
-## Attention
+## Choice of Attention
 
 <img src="images/i19.PNG" width="400"/>
 
@@ -400,7 +442,7 @@ Why teacher forcing ?
 * Then, it is used as input to the match function
 * The model learns to move attention weightage from left to right when decoding
 
-### Does LAS work ?
+## Does LAS work ?
 
 <img src="images/i23.PNG" width="400"/> 
 
@@ -496,7 +538,7 @@ Why teacher forcing ?
 * The figure above shows that CTC without post-processing have bad performance
 * Due to CTC requires post-processing, there are some with opinion that it should not be considered an end-to-end model
 
-### Issue with CTC
+## Issue with CTC
 
 * The classifier at each time step decodes independently
 * For example, if the model is supposed to decode only one *c*
@@ -753,8 +795,8 @@ Why teacher forcing ?
 * Train another deep neural network (named *DNN 2*) with realigned data
 * Repeat these steps
 
-## Alignment of HMM, CTC and RNN-T
-### LAS Does Not Require Alignment
+# Alignment of HMM, CTC and RNN-T
+## LAS Does Not Require Alignment
 <img src="images/i46.PNG" width="200"/> 
 
 * End-to-end models such as LAS can be thought of as modeling P(Y|X)
@@ -809,7 +851,7 @@ Why teacher forcing ?
 * <code>align(Y)</code> means valid aligment 
 * Summing up all the probabilities for every possible valid alignments denoted by <code>P(h|X)</code> to obtain <code>P(Y|X)</code>
 
-### Content
+## Content
 1. Enumerate all the possible alignments
 2. How to sum over all the alignments
 3. Training
@@ -903,7 +945,7 @@ Why teacher forcing ?
 
 * Visualization for HMM, CTC and RNN-T
 
-### How to sum over all the alignments 
+### 1. How to sum over all the alignments 
 
 #### Score computation for an alignment
 
@@ -1040,7 +1082,7 @@ Why teacher forcing ?
 * Multiplying together these terms we can obtain the partial derivative
 * At this point, we know how to compute the gradients during training
 
-### Testing (Inference, Decoding)
+### 4. Testing (Inference, Decoding)
 
 * Ideally, we want to find the Y which maximizes <code>*log* P(Y|X)</code>
 * The ideal expression is as follows :
@@ -1093,7 +1135,7 @@ Why teacher forcing ?
 * For LAS, alignment is stated to be not **explicit**
 * LAS uses attention to discover input and output relationship in contrast to CTC and RNN-T which require alignment
 
-### Language Model
+# Language Model
 
 * Language model estimate the probibility of token sequence
 * The token sequence is denoted by **Y** as shown in following figure
@@ -1137,7 +1179,7 @@ Why teacher forcing ?
 * We can estimate it consists of about : 12500 x 60 x 130 =~ 100 million words
 * For BERT (a very large language model), more than 300 million words
 
-### N-gram
+## N-gram
 * Before deep learning, N-gram is used to estimate P(y1, y2, ..., yn)
 * Collect a large amount of text data as training data
 * Because complexity of human language sentences, some sentences or token sequences may not appear in dataset
@@ -1150,7 +1192,7 @@ Why teacher forcing ?
 * It is the ratio of count of "nice beach" to count of "nice"
 * This can be generalized to 3-gram, 4-gram etc
 
-#### Challenge of N-gram
+## Challenge of N-gram
 * The estimated probability for the token sequence is not accurate
     * Especially for n-gram with large n
     * This is because as the sentence length gets longer, the complexity increases
@@ -1165,7 +1207,7 @@ Why teacher forcing ?
 * It is better to assign some small probability rather than 0 
 * This is known as **language model smoothing**
 
-#### Continuous Language Model
+## Continuous Language Model
 * Training a model to **fill in the blanks**
 * Borrowing idea from recommendation system
 * Recommendation system is used by Netflix to suggest which movie to watch
@@ -1208,7 +1250,7 @@ Why teacher forcing ?
 * The output can be seen as prediction for count of *ran* and *sit* together with *dog*
 * The objective of training is to minimize the counts in vector form and the predicted counts
 
-### Neural Network based Language Model
+## Neural Network based Language Model
 * Use neural network to train language model
 * Exists since 2003 in Bengio's paper (probably). It's actually earlier than Continuous Language Model
     * Inside the paper, there is something similar to word embedding
@@ -1224,7 +1266,7 @@ Why teacher forcing ?
 * Each word is represented using 1-of-N encoding
 * Each time, NN eats a word to predict the next word, NN generates a distribution vector
 
-#### RNN-based LM
+### RNN-based LM
 * Mikolov INTERSPEECH 2010
 * 1-of-N encoding cannot represent very long history
 * History cannot be very lon
@@ -1243,22 +1285,25 @@ Why teacher forcing ?
 <img src="images/i95.PNG" width="350"/>
 
 * Most common language model 
+* Borh LAS and LM are trained separately
+* Integrate both of them after training
 
 **Deep Fusion**
 
 <img src="images/i96.PNG" width="350"/>
 
 * Combine LAS and LM together at the hidden layer, both are feed to a new **network**
-* After LAS and LM were trained, need to prepare data to train new network
+* Both LAS and LM were trained before integration
+* Need to prepare data to train new network
 * After the network is trained, cannot simply switch LM 
 * If want to change LM, need to retrain the network
-* When to change LM, for example, when change domain
+* When to change LM ? For example, when change domain
 * Workaround :
 
 <img src="images/i97.PNG" width="350"/>
 
 * Take the output right before softmax of LM as input to the network
-* When change LM, does not need to retrain network
+* In this way, does not need to retrain network when switching LM
 
 **Cold Fusion**
 
@@ -1266,6 +1311,6 @@ Why teacher forcing ?
 * Train LAS together with the trained LM
 * In this way, LM converges faster during training
 * This maybe because the LM is already well-trained
-    * During training, LAS does not need to learn again relationship between words
+    * During training, LAS does not need to learn the relationship between words again
     * This make the training converges faster
 * If you want to change the LM, LAS has to be trained again
