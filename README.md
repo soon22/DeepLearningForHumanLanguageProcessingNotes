@@ -26,7 +26,7 @@ The following table is a oversimplified summary of the coverage of this course :
 ### Contents
 
 * [Speech Recognition](SpeechRecognition/README.md)
-* [Voice Conversion](VoiceConversiom/README.md)
+* [Voice Conversion](VoiceConversion/README.md)
 * Speech Seperation *work in progress*
 * Speech Synthesis *work in progress*
 * Speaker Verification *work in progress*
