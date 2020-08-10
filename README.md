@@ -27,7 +27,7 @@ The following table is a oversimplified summary of the coverage of this course :
 
 * [Speech Recognition](SpeechRecognition/README.md)
 * [Voice Conversion](VoiceConversion/README.md)
-* Speech Seperation *work in progress*
+* [Speech Seperation](SpeechSeparation/README.md)
 * Speech Synthesis *work in progress*
 * Speaker Verification *work in progress*
 * Natural Language Processing Tasks *work in progress*
