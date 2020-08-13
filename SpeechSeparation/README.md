@@ -225,4 +225,91 @@
 * The speaker separation network will result in better label assignment over time
 * This is turns improves the speaker separation network
 
+## Time-domain Audio Separation Network (TasNet)
 
+<img src="images/i22.PNG" width="500"/>
+
+* TasNet takes in mixed audio directly (not processed acoustic features such as spectrogram)
+* Encoder's output is a matrix called feature map
+    * It is kind of similar to the spectrogram which is the result of Fourier Transform
+* **Separator** takes in the feature map and generates two masks:
+    * Mask is a matrix with same size as the feature map
+    * We have 2 matrices, one for each mask
+* Multiply the feature map with each of the masks
+* **Decoder** takes in the result of both multiplication and generaetes two seperated audio
+    * Similar to inverse Fourier Transform
+
+<img src="images/i23.PNG" width="500"/>
+
+*  As shown in the figure, **encoder** takes in 16 samples of audio and generates a 512-dimensional vector
+* The **decoder** takes in a 512-dimensional vector and generates audio signal
+* **Encoder** and **decoder** seem to be inverse of each other
+* The output of the **encoder** looks like spectrogram
+* Spectrogram's values are positive
+* Do we have to constrain the values of encoder's output matrix to positive value ?
+    * In the paper, ReLU was added to make the values of encoder's output positive
+    * It was found that the performance without ReLU is better
+* Do we have to set a constraint so encoder and decoder are inverse of each other ?
+    * In the paper, they set this constraint and it does not make the result any better
+
+**Encoder's Parameters**
+
+<img src="images/i24.PNG" width="200"/>
+
+* The 512-dimensional vector can be seen as using 512 basis or 512 matched filters to encode the signal at different frequencies
+* Human speech has more encodings at lower frequency 
+* As shown in the left part of the figure, red and blue patches are bigger at lower basis index
+* Encoder does encode information about phase. Whereas, Fourier Transform abandons phase info
+
+### Seperator
+
+<img src="images/i25.PNG" width="600"/>
+
+* Many layers of 1D **dilated convolution**
+* Its structure is similar to WaveNet
+* The encoder output is a matrix
+* Each vector in the matrix consists of 512 dimensions, representative of 16 seconds of audio
+* *d* denotes the dilation rate
+* Higher level of convolution layer has larger dilation rate
+* At a higher layer of convolution, each convolution output considers longer audio because they are based on more vectors of encoder's output compared to the lower layer's convolution output
+* After all the convoluition, each vector at the output undergoes 2 transform (because 2 masks) and sigmoid to become part of the masks
+* Sigmoid keeps the value between 0 and 1
+* But, sigmoid is not really that important
+* The mask can have negative values
+
+<img src="images/i26.PNG" width="600"/>
+
+* *d* goes from 1 to 128
+
+<img src="images/i27.PNG" width="600"/>
+
+* Actual separator repeats the convolution several times, the number of times to repeat is a hyperparameter
+* Usually, 3 to 4 times
+* Why so many layers and repeats ?
+* So it looks at longer audio 
+* 16 samples, 2ms per encoder output vector
+* If repeat = 3, the model considers 1.53s of audio
+* Depthwise Separable Convolution : For reducing network's parameters
+
+### Result
+
+<img src="images/i28.PNG" width="400"/>
+
+* LSTM overfits starting from first sample
+* If we does not feed LSTM starting from first sample, it becomes unstable due to overfit
+* Convolution does not have this problem because it is time-invariant
+
+<img src="images/i29.PNG" width="400"/>
+
+* Benchmark on WSJ0-2 mix dataset
+* SI-SDR around 15 is already very good
+* Deep Clustering is one of the lowest
+    * Speaker separation is not good
+    * It does do source separation
+    * Audio quality is bad, but generalize better
+
+# More (Not covered in lecture)
+* Unknown number of speakers
+* Multiple Microphones
+* Task-oriented Optimization
+* Visual Information
