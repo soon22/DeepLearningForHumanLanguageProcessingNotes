@@ -30,7 +30,7 @@ The following table is a oversimplified summary of the coverage of this course :
 * [Speech Seperation](SpeechSeparation/README.md)
 * Speech Synthesis *work in progress*
 * Speaker Verification *work in progress*
-* Natural Language Processing Tasks *work in progress*
+* [Natural Language Processing Tasks](NLP/README.md)
 * BERT and its family *work in progress*
 * Non-Autoregressive Generation *work in progress*
 * Text Style Transfer *work in progress*
